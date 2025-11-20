@@ -48,8 +48,11 @@
         <modal-component id="modalMarca" titulo="Adicionar Marca">
 
             <template v-slot:alertas>
-                <alert-component tipo="success"></alert-component>
-                <alert-component tipo="danger"></alert-component>
+                <alert-component tipo="success" :detalhes="transacaoDetalhes" titulo="Cadastro realizado com sucesso"
+                    v-if="transacaoStatus == 'add'">
+                </alert-component>
+                <alert-component tipo="danger" :detalhes="transacaoDetalhes" titulo="Erro ao tentar cadastrar a marca"
+                    v-if="transacaoStatus == 'error'"></alert-component>
             </template>
             <template v-slot:conteudo>
                 <div class="form-group">
@@ -102,7 +105,9 @@ export default {
         return {
             urlBase: 'http://localhost:8000/api/v1/marca',
             nomeMarca: '',
-            arquivoImagem: []
+            arquivoImagem: [],
+            transacaoStatus: '',
+            transacaoDetalhes: [],
         }
     },
     methods: {
@@ -124,16 +129,31 @@ export default {
                 }
             }
 
-
-
             axios.post(this.urlBase, formData, config)
                 .then(response => {
+                    this.transacaoStatus = 'add'
+                    this.transacaoDetalhes = {
+                        data: {
+                            message: 'ID de Registro: ' + response.data.id
+                        }
+                    };
                     console.log(response)
+
+                    this.nomeMarca = '';
+                    this.arquivoImagem = null;
+                    document.getElementById('novaImagem').value = '';
                 })
 
-                .catch(error => {
-                    console.log(error)
-                })
+                .catch(errors => {
+
+                    this.transacaoStatus = 'error'
+                    this.transacaoDetalhes = {
+                        data: errors.response.data,
+                        status: errors.response.status,
+                        statusText: errors.response.statusText
+                    };
+                    console.log('Erros capturados', this.transacaoDetalhes);
+                });
         }
     }
 }
