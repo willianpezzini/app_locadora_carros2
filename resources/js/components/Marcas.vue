@@ -35,7 +35,11 @@
 
                 <card-component title="Relação de marcas">
                     <template v-slot:body>
-                        <table-component></table-component>
+                        <table-component 
+                            :dados="marcas"
+                            :titulos="['ID', 'Nome', 'Imagem']"    
+                        >   
+                        </table-component>
                     </template>
                     <template v-slot:footer>
                         <button type="submit" class="btn btn-primary btn-sm" data-toggle="modal"
@@ -62,7 +66,6 @@
                             placeholder="Nome da Marca" v-model="nomeMarca">
 
                     </input-container-component>
-                    {{ nomeMarca }}
                 </div>
 
                 <div class="form-group">
@@ -72,7 +75,6 @@
                             placeholder="Selecione uma imagem" @change="carregarImagem($event)">
 
                     </input-container-component>
-                    {{ arquivoImagem }}
                 </div>
             </template>
 
@@ -107,7 +109,8 @@ export default {
             nomeMarca: '',
             arquivoImagem: [],
             transacaoStatus: '',
-            transacaoDetalhes: [],
+            transacaoDetalhes: {},
+            marcas: []
         }
     },
     methods: {
@@ -137,7 +140,7 @@ export default {
                             message: 'ID de Registro: ' + response.data.id
                         }
                     };
-                    console.log(response)
+                    // console.log(response)
 
                     this.nomeMarca = '';
                     this.arquivoImagem = null;
@@ -153,8 +156,27 @@ export default {
                         statusText: errors.response.statusText
                     };
                     console.log('Erros capturados', this.transacaoDetalhes);
-                });
+                });            
+        },
+        carregarLista() {
+            let config = {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': this.token
+                }
+            }
+            axios.get(this.urlBase, config)
+                .then(response => {
+                    this.marcas = response.data
+                    // console.log(this.marcas)
+                })
+                .catch(errors => {
+                    console.log(errors)
+                })
         }
+    },
+    mounted() {
+        this.carregarLista()
     }
 }
 </script>
