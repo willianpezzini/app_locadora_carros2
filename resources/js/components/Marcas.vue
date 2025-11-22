@@ -35,10 +35,7 @@
 
                 <card-component title="Relação de marcas">
                     <template v-slot:body>
-                        <table-component 
-                            :dados="marcas"
-                            :titulos="['ID', 'Nome', 'Imagem']"    
-                        >   
+                        <table-component :dados="marcas.data" :titulos="titulosTabela">
                         </table-component>
                     </template>
                     <template v-slot:footer>
@@ -94,7 +91,7 @@ export default {
             let token = document.cookie.split(';').find(indice => {
                 return indice.startsWith('token=')
             })
-
+  
             token = token.split('=')[1]
             token = 'Bearer ' + token
 
@@ -110,7 +107,14 @@ export default {
             arquivoImagem: [],
             transacaoStatus: '',
             transacaoDetalhes: {},
-            marcas: []
+            marcas: { data: [] },
+
+            titulosTabela: {
+                id: {titulo:'ID', tipo: 'text'},
+                nome: {titulo: 'Nome da Marca', tipo: 'text'},
+                imagem: {titulo: 'Logo', tipo: 'image'},
+                created_at: {titulo: 'Data Criação', tipo: 'data'},
+            }
         }
     },
     methods: {
@@ -140,7 +144,6 @@ export default {
                             message: 'ID de Registro: ' + response.data.id
                         }
                     };
-                    // console.log(response)
 
                     this.nomeMarca = '';
                     this.arquivoImagem = null;
@@ -156,7 +159,7 @@ export default {
                         statusText: errors.response.statusText
                     };
                     console.log('Erros capturados', this.transacaoDetalhes);
-                });            
+                });
         },
         carregarLista() {
             let config = {
@@ -167,8 +170,8 @@ export default {
             }
             axios.get(this.urlBase, config)
                 .then(response => {
-                    this.marcas = response.data
-                    // console.log(this.marcas)
+                    this.marcas = { data: response.data }
+                    console.log(this.marcas)
                 })
                 .catch(errors => {
                     console.log(errors)

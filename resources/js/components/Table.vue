@@ -1,25 +1,61 @@
 <template>
     <div>
-        <table class="table table-hover">
+        <table class="table table-hover" v-if="dados && dados.length > 0">
             <thead>
                 <tr >
-                    <th v-for="t, key in titulos" :key="key" scope="row">{{ t }}</th>
+                    <th v-for="(titulo, key) in titulos" :key="key" scope="col" >
+                        {{ titulo.titulo}}
+                    </th>
+                    <th v-if="$slots.acoes">Ações</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="m in dados" :key="m.id">
-                    <th scope="row">{{ m.id }}</th>
-                    <td>{{ m.nome }}</td>
-                    <td><img :src="'/storage/'+ m.imagem" alt="" width="30px"></td>
+                <tr v-for="obj, index in dados" :key="obj.id || index">
+                    <td v-for="(titulo, chave) in titulos" :key="chave">
+                        <span v-if="chave == 'imagem'">
+                            <img v-if="obj[chave]" :src="'/storage/'+obj[chave]" alt="Imagem do registro" width="40px" height="40px" class="img-thumbnail">
+                            <span v-else class="text-muted small">Sem imagem</span>
+                        </span>
+                        <span v-else-if="chave === 'created_at' || chave === 'updated_at'">
+                            {{ formatarData(obj[chave]) }}
+                        </span>
+                        <span v-else>
+                            {{ obj[chave] }}
+                        </span>
+                    </td>
+                    <td v-if="$slots.acoes">
+                        <slot name="acoes" :item="obj"></slot>
+                    </td>
                 </tr>
-              
             </tbody>
         </table>
+        <div v-else class="alert alert-info">
+            Nenhum registro encontrado.
+        </div>
     </div>
 </template>
 
 <script>
 export default {
-    props: ['dados', 'titulos']
+    props: {
+        dados: {
+            type: Array,
+            require: true,
+            default: () => []
+        },
+        titulos: {
+            type: Object,
+            required: true
+        }
+    },
+    methods: {
+        formatarData(dataString) {
+            if (!dataString) return '';
+
+            const data = new Date(dataString);
+
+            return data.toLocaleDateString('pt-BR', { timeZone: 'UTC'});
+        }
+    }
 }
 </script>
