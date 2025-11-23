@@ -170,7 +170,7 @@ export default {
             }
             axios.get(this.urlBase, config)
                 .then(response => {
-                    this.marcas = { data: response.data }
+                    this.marcas = response.data;
                     console.log(this.marcas)
                 })
                 .catch(errors => {
