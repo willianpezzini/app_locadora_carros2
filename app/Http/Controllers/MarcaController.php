@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Marca;
+use App\Repositories\MarcaRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -18,10 +19,23 @@ class MarcaController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $marcas = $this->marca->all();
-        return response()->json($marcas, 200);
+        $marcaRepository = new MarcaRepository($this->marca);
+
+        if ($request->has('atributos_modelos')) {
+            $atributos_modelos = 'modelos:id,' . $request->atributos_modelos;
+            $marcaRepository->selectAtributosRegistrosRelacionados($atributos_modelos);
+        } else {
+            $marcaRepository->selectAtributosRegistrosRelacionados('modelos');
+        }
+
+        if ($request->has('atributos')) {
+            $marcaRepository->selectAtributos($request->atributos);
+        }
+
+
+        return response()->json($marcaRepository->getResultadoPaginado(3), 200);
     }
 
     /**
@@ -45,12 +59,13 @@ class MarcaController extends Controller
         // 1. Validação
         $request->validate([
             'nome' => 'required|unique:marcas,nome|min:3',
-            'imagem' => 'required|file|mimes:png,jpeg,jpg'
+            'imagem' => 'required|file|mimes:png,jpeg,jpg|max:2048'
         ], [
             'required' => 'O campo :attribute é obrigatório.',
             'unique' => 'O nome da marca já existe',
             'min' => 'O campo :attribute deve ter no mínimo 3 caracteres.',
-            'mimes' => 'O arquivo deve ser uma imagem do tipo PNG, JPEG ou JPG.'
+            'mimes' => 'O arquivo deve ser uma imagem do tipo PNG, JPEG ou JPG.',
+            'max' => 'A imagem deve ter no maximo 2MB'
         ]);
 
         // 2. Upload da Imagem (Salva no disco 'public')
@@ -75,7 +90,7 @@ class MarcaController extends Controller
      */
     public function show($id)
     {
-        $marca = $this->marca->find($id);
+        $marca = $this->marca->with('modelos')->find($id);
         if ($marca === null) {
             return response()->json(['erro' => 'Recurso pesquisado não existe'], 404);
         }
@@ -88,7 +103,7 @@ class MarcaController extends Controller
      * @param  \App\Models\Marca  $marca
      * @return \Illuminate\Http\Response
      */
-    public function edit(Marca $marca)
+    public function edit()
     {
         //
     }
@@ -127,18 +142,21 @@ class MarcaController extends Controller
         }
 
         // Se enviou uma nova imagem, remove a antiga se necessário
-        if ($request->file('imagem')) {
-            Storage::disk('public')->delete($marca->imagem);
+        if ($request->hasFile('imagem')) {
+            if (Storage::disk('public')->exists($marca->imagem)) {
+                Storage::disk('public')->delete($marca->imagem);
+            }
+
             $imagem = $request->file('imagem');
             $imagem_urn = $imagem->store('imagens', 'public');
 
             // Atualiza o objeto $marca com o novo caminho antes de salvar
-            $marca->imagem = $imagem_urn;
+            $dadosParaSalvar['imagem'] = $imagem_urn;
+        } else {
+            unset($dadosParaSalvar['imagem']);
         }
 
-        // Preenche os outros dados (nome, etc)
-        $marca->fill($request->except('imagem')); // preenche tudo exceto a imagem que já tratamos
-        $marca->save();
+        $marca->update($dadosParaSalvar);
 
         return response()->json($marca, 200);
     }
@@ -158,7 +176,9 @@ class MarcaController extends Controller
         }
 
         // Remove o arquivo de imagem antigo do disco
-        Storage::disk('public')->delete($marca->imagem);
+        if (Storage::disk('public')->delete($marca->imagem)) {
+            Storage::disk('public')->delete($marca->imagem);
+        }
 
         $marca->delete();
         return response()->json(['msg' => 'A marca foi removida com sucesso!'], 200);
