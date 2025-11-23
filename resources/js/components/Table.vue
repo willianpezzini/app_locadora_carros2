@@ -12,7 +12,7 @@
             <tbody>
                 <tr v-for="obj, index in dados" :key="obj.id || index">
                     <td v-for="(titulo, chave) in titulos" :key="chave">
-                        <span v-if="chave == 'imagem'">
+                        <span v-if="chave === 'imagem'">
                             <img v-if="obj[chave]" :src="'/storage/'+obj[chave]" alt="Imagem do registro" width="40px" height="40px" class="img-thumbnail">
                             <span v-else class="text-muted small">Sem imagem</span>
                         </span>
