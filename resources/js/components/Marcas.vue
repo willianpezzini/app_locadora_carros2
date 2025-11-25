@@ -39,8 +39,22 @@
                         </table-component>
                     </template>
                     <template v-slot:footer>
-                        <button type="submit" class="btn btn-primary btn-sm" data-toggle="modal"
-                            data-target="#modalMarca">Adicionar</button>
+                        <div class="row d-flex align-items-center">
+                            <div class="col-10">
+                                <paginate-component>
+                                    <li v-for="link, key in marcas.links" :key="key" class="page-item"><a class="page-link" href="#" v-html="link.label "></a></li>
+                                    
+                                </paginate-component>
+                            </div>
+
+                            <div class="col">
+                                <button type="submit" class="btn btn-primary btn-sm " data-toggle="modal"
+                                    data-target="#modalMarca">
+                                    Adicionar
+                                </button>
+                            </div>
+                        </div>
+
                     </template>
                 </card-component>
                 <!-- Fim card de Listagem de marcas -->
@@ -91,7 +105,7 @@ export default {
             let token = document.cookie.split(';').find(indice => {
                 return indice.startsWith('token=')
             })
-  
+
             token = token.split('=')[1]
             token = 'Bearer ' + token
 
@@ -110,10 +124,10 @@ export default {
             marcas: { data: [] },
 
             titulosTabela: {
-                id: {titulo:'ID', tipo: 'text'},
-                nome: {titulo: 'Nome da Marca', tipo: 'text'},
-                imagem: {titulo: 'Logo', tipo: 'image'},
-                created_at: {titulo: 'Data Criação', tipo: 'data'},
+                id: { titulo: 'ID', tipo: 'text' },
+                nome: { titulo: 'Nome da Marca', tipo: 'text' },
+                imagem: { titulo: 'Logo', tipo: 'image' },
+                created_at: { titulo: 'Data Criação', tipo: 'data' },
             }
         }
     },
