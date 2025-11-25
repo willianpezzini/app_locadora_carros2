@@ -9,7 +9,7 @@
                             <input-container-component titulo="ID" id="InputId" id-help="idHelp"
                                 texto-ajuda="Opcional. Informe o Id da marca">
                                 <input type="number" class="form-control" id="inputId" aria-describedby="idHelp"
-                                    placeholder="Id">
+                                    placeholder="Id" v-model="busca.id">
 
                             </input-container-component>
                         </div>
@@ -17,7 +17,7 @@
                             <input-container-component titulo="Nome da Marca" id="InputNome" id-help="nomeHelp"
                                 texto-ajuda="Opcional. Informe o Nome da marca">
                                 <input type="text" class="form-control" id="inputNome" aria-describedby="nomeHelp"
-                                    placeholder="Nome da Marca">
+                                    placeholder="Nome da Marca" v-model="busca.nome">
 
                             </input-container-component>
                         </div>
@@ -25,7 +25,7 @@
                     </template>
 
                     <template v-slot:footer>
-                        <button type="submit" class="btn btn-primary btn-sm">Pesquisar</button>
+                        <button type="submit" class="btn btn-primary btn-sm" @click="pesquisar()">Pesquisar</button>
                     </template>
                 </card-component>
 
@@ -113,7 +113,7 @@ export default {
             token = token.split('=')[1]
             token = 'Bearer ' + token
 
-            console.log(token)
+            // console.log(token)
             return token
         }
     },
@@ -126,6 +126,7 @@ export default {
             transacaoStatus: '',
             transacaoDetalhes: {},
             marcas: { data: [] },
+            busca: { id: '', nome: '' },
 
             titulosTabela: {
                 id: { titulo: 'ID', tipo: 'text' },
@@ -146,8 +147,25 @@ export default {
 
             }
         },
+        pesquisar() {
+            // console.log(this.busca)
+            let filtro = ''
+
+            for(let chave in this.busca) {
+                if (this.busca[chave]) {
+                    if (filtro != '') {
+                    filtro += ";"
+                }
+
+                filtro += chave + ':like:' + this.busca[chave]
+                }
+                
+            }
+
+            console.log(filtro)
+        },
         salvar() {
-            console.log(this.nomeMarca, this.arquivoImagem)
+            // console.log(this.nomeMarca, this.arquivoImagem)
 
             let formData = new FormData();
             formData.append('nome', this.nomeMarca)
@@ -196,7 +214,7 @@ export default {
             axios.get(this.urlBase, config)
                 .then(response => {
                     this.marcas = response.data;
-                    console.log(this.marcas)
+                    // console.log(this.marcas)
                 })
                 .catch(errors => {
                     console.log(errors)
