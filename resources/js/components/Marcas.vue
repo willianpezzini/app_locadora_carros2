@@ -42,8 +42,12 @@
                         <div class="row d-flex align-items-center">
                             <div class="col-10">
                                 <paginate-component>
-                                    <li v-for="link, key in marcas.links" :key="key" class="page-item"><a class="page-link" href="#" v-html="link.label "></a></li>
-                                    
+                                    <li v-for="link, key in marcas.links" :key="key"
+                                        :class="link.active ? 'page-item active' : 'page-item'"
+                                        @click="paginacao(link)">
+                                        <a class="page-link" v-html="link.label" ></a>
+                                    </li>
+
                                 </paginate-component>
                             </div>
 
@@ -134,6 +138,13 @@ export default {
     methods: {
         carregarImagem(e) {
             this.arquivoImagem = e.target.files
+        },
+        paginacao(link) {
+            if (link.url) {
+                this.urlBase = link.url
+                this.carregarLista()
+
+            }
         },
         salvar() {
             console.log(this.nomeMarca, this.arquivoImagem)
