@@ -131,6 +131,9 @@ export default {
             transacaoStatus: '',
             transacaoDetalhes: {},
             carregando: false,
+            visualizar: true,
+            editar: true,
+            excluir: true,
             marcas: { data: [] },
             busca: { id: '', nome: '' },
 
