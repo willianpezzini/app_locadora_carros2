@@ -29,6 +29,10 @@ class MarcaController extends Controller
         } else {
             $marcaRepository->selectAtributosRegistrosRelacionados('modelos');
         }
+        
+        if ($request->has('filtro')) {
+            $marcaRepository->filtro($request->filtro);
+        }
 
         if ($request->has('atributos')) {
             $marcaRepository->selectAtributos($request->atributos);
@@ -140,6 +144,8 @@ class MarcaController extends Controller
             // Validação completa para PUT
             $request->validate($marca->rules(), $marca->feedback());
         }
+
+        $dadosParaSalvar = $request->all();
 
         // Se enviou uma nova imagem, remove a antiga se necessário
         if ($request->hasFile('imagem')) {

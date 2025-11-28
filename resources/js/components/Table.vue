@@ -1,5 +1,11 @@
 <template>
     <div>
+        <div v-if="carregando" class="text-center p-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Carregando...</span>
+            </div>
+            <p class="mt-2 text-muted">Carregando dados...</p>
+        </div>
         <table class="table table-hover" v-if="dados && dados.length > 0">
             <thead>
                 <tr >
@@ -46,6 +52,11 @@ export default {
         titulos: {
             type: Object,
             required: true
+        },
+        carregando: {
+            type: Boolean,
+            require: false,
+            default: false
         }
     },
     methods: {
