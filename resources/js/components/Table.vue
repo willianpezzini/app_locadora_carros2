@@ -13,6 +13,7 @@
                         {{ titulo.titulo}}
                     </th>
                     <th v-if="$slots.acoes">Ações</th>
+                    <th v-if="visualizar || editar || excluir"></th>
                 </tr>
             </thead>
             <tbody>
@@ -31,6 +32,11 @@
                     </td>
                     <td v-if="$slots.acoes">
                         <slot name="acoes" :item="obj"></slot>
+                    </td>
+                    <td v-if="visualizar || editar || excluir">
+                        <button v-if="visualizar" class="btn btn-outline-success btn-sm">Ver</button>
+                        <button v-if="editar" class="btn btn-outline-primary btn-sm">Editar</button>
+                        <button v-if="excluir" class="btn btn-outline-danger btn-sm">Excluir</button>
                     </td>
                 </tr>
             </tbody>
@@ -57,6 +63,21 @@ export default {
             type: Boolean,
             require: false,
             default: false
+        },
+        visualizar: {
+            type: Boolean,
+            require: true,
+            default: true
+        },
+        editar: {
+            type: Boolean,
+            require: true,
+            default: true
+        },
+        excluir: {
+            type: Boolean,
+            require: true,
+            default: true
         }
     },
     methods: {
