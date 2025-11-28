@@ -35,7 +35,10 @@
 
                 <card-component title="Relação de marcas">
                     <template v-slot:body>
-                        <table-component :dados="marcas.data" :titulos="titulosTabela">
+                        <table-component 
+                            :dados="marcas.data" 
+                            :titulos="titulosTabela"
+                            :carregando="carregando">
                         </table-component>
                     </template>
                     <template v-slot:footer>
@@ -121,10 +124,13 @@ export default {
     data() {
         return {
             urlBase: 'http://localhost:8000/api/v1/marca',
+            urlPaginacao: '',
+            urlFiltro: '',
             nomeMarca: '',
             arquivoImagem: [],
             transacaoStatus: '',
             transacaoDetalhes: {},
+            carregando: false,
             marcas: { data: [] },
             busca: { id: '', nome: '' },
 
@@ -142,9 +148,8 @@ export default {
         },
         paginacao(link) {
             if (link.url) {
-                this.urlBase = link.url
+                this.urlPaginacao = link.url.split('?')[1]
                 this.carregarLista()
-
             }
         },
         pesquisar() {
@@ -157,12 +162,20 @@ export default {
                     filtro += ";"
                 }
 
-                filtro += chave + ':like:' + this.busca[chave]
+                filtro += chave + ':like:%' + this.busca[chave] + '%';
                 }
                 
             }
+            if (filtro != '') {
+                this.urlPaginacao = 'page=1';
+                this.urlFiltro = 'filtro=' + filtro;
+            } else {
+                this.urlFiltro = ''
+            }
 
-            console.log(filtro)
+            
+            this.carregarLista()
+            console.log('urlFiltro: ',this.urlFiltro)
         },
         salvar() {
             // console.log(this.nomeMarca, this.arquivoImagem)
@@ -211,13 +224,40 @@ export default {
                     'Authorization': this.token
                 }
             }
-            axios.get(this.urlBase, config)
+            this.carregando = true
+
+            let url = this.urlBase + '?';
+
+            if (this.urlPaginacao) {
+                url += this.urlPaginacao 
+            }
+
+            if (this.urlFiltro) {
+                if (this.urlPaginacao) {
+                    url += '&' + this.urlFiltro;
+                } else {
+                    url += this.urlFiltro;
+                }
+            }
+
+            if (url.endsWith('?')) {
+                url = url.slice(0, -1)
+            }
+
+            console.log('URL Final: ', url)
+
+            this.marcas = { data: [] };
+            
+            axios.get(url, config)
                 .then(response => {
                     this.marcas = response.data;
                     // console.log(this.marcas)
                 })
                 .catch(errors => {
                     console.log(errors)
+                })
+                .finally(() => {
+                    this.carregando = false
                 })
         }
     },
