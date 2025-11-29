@@ -3,6 +3,7 @@
         <div class="row justify-content-center ">
             <div class="col-md-8">
                 <!-- Inicio card de busca -->
+
                 <card-component title="Busca de Marcas">
                     <template v-slot:body>
                         <div class="col mb-3">
@@ -35,10 +36,9 @@
 
                 <card-component title="Relação de marcas">
                     <template v-slot:body>
-                        <table-component 
-                            :dados="marcas.data" 
-                            :titulos="titulosTabela"
-                            :carregando="carregando">
+                        <table-component :dados="marcas.data"
+                            :visualizar="{ visivel: true, dataToggle: 'modal', dataTarget: '#modalVisualizarMarca' }"
+                            :editar="{}" :excluir="{}" :titulos="titulosTabela" :carregando="carregando">
                         </table-component>
                     </template>
                     <template v-slot:footer>
@@ -48,7 +48,7 @@
                                     <li v-for="link, key in marcas.links" :key="key"
                                         :class="link.active ? 'page-item active' : 'page-item'"
                                         @click="paginacao(link)">
-                                        <a class="page-link" v-html="link.label" ></a>
+                                        <a class="page-link" v-html="link.label"></a>
                                     </li>
 
                                 </paginate-component>
@@ -67,8 +67,9 @@
                 <!-- Fim card de Listagem de marcas -->
             </div>
         </div>
-        <modal-component id="modalMarca" titulo="Adicionar Marca">
 
+        <!-- Inicio modal de inclusão da marca -->
+        <modal-component id="modalMarca" titulo="Adicionar Marca">
             <template v-slot:alertas>
                 <alert-component tipo="success" :detalhes="transacaoDetalhes" titulo="Cadastro realizado com sucesso"
                     v-if="transacaoStatus == 'add'">
@@ -101,6 +102,41 @@
                 <button type="button" class="btn btn-primary" @click="salvar">Salvar</button>
             </template>
         </modal-component>
+        <!-- Fim modal de inclusão da marca -->
+
+        <!-- Inicio modal de visualização da marca -->
+        <modal-component id="modalVisualizarMarca" titulo="Visualizar Marca">
+            <template v-slot:alertas>
+                <alert-component tipo="success" :detalhes="transacaoDetalhes" titulo="Cadastro realizado com sucesso"
+                    v-if="transacaoStatus == 'add'">
+                </alert-component>
+                <alert-component tipo="danger" :detalhes="transacaoDetalhes" titulo="Erro ao tentar cadastrar a marca"
+                    v-if="transacaoStatus == 'error'"></alert-component>
+            </template>
+            <template v-slot:conteudo>
+                <input-container-component titulo="ID">
+                    <input type="text" class="form-control" :value="$store.state.item.id">
+                </input-container-component>
+                <input-container-component titulo="Nome da Marca">
+                    <input type="text" class="form-control" :value="$store.state.item.nome">
+                </input-container-component>
+                <input-container-component titulo="Imagem">
+                    <img :src="'storage/' + $store.state.item.imagem" v-if="$store.state.item.imagem" alt="" width="100px" height="100px"
+                        style="padding: 10px">
+                </input-container-component>
+                <input-container-component titulo="Data de Criação">
+                    <input type="text" class="form-control" :value="$store.state.item.created_at">
+                </input-container-component>
+                <input-container-component titulo="Última Atualização">
+                    <input type="text" class="form-control" :value="$store.state.item.updated_at">
+                </input-container-component>
+            </template>
+
+            <template v-slot:rodape>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </template>
+        </modal-component>
+        <!-- Fim modal de visualização da marca -->
     </div>
 </template>
 
@@ -159,15 +195,15 @@ export default {
             // console.log(this.busca)
             let filtro = ''
 
-            for(let chave in this.busca) {
+            for (let chave in this.busca) {
                 if (this.busca[chave]) {
                     if (filtro != '') {
-                    filtro += ";"
+                        filtro += ";"
+                    }
+
+                    filtro += chave + ':like:%' + this.busca[chave] + '%';
                 }
 
-                filtro += chave + ':like:%' + this.busca[chave] + '%';
-                }
-                
             }
             if (filtro != '') {
                 this.urlPaginacao = 'page=1';
@@ -176,9 +212,9 @@ export default {
                 this.urlFiltro = ''
             }
 
-            
+
             this.carregarLista()
-            console.log('urlFiltro: ',this.urlFiltro)
+            console.log('urlFiltro: ', this.urlFiltro)
         },
         salvar() {
             // console.log(this.nomeMarca, this.arquivoImagem)
@@ -232,7 +268,7 @@ export default {
             let url = this.urlBase + '?';
 
             if (this.urlPaginacao) {
-                url += this.urlPaginacao 
+                url += this.urlPaginacao
             }
 
             if (this.urlFiltro) {
@@ -250,7 +286,7 @@ export default {
             console.log('URL Final: ', url)
 
             this.marcas = { data: [] };
-            
+
             axios.get(url, config)
                 .then(response => {
                     this.marcas = response.data;
