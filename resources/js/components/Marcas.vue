@@ -38,7 +38,10 @@
                     <template v-slot:body>
                         <table-component :dados="marcas.data"
                             :visualizar="{ visivel: true, dataToggle: 'modal', dataTarget: '#modalVisualizarMarca' }"
-                            :editar="{}" :excluir="{}" :titulos="titulosTabela" :carregando="carregando">
+                            :editar="{visivel: true, dataToggle: 'modal', dataTarget: '#modalEditarMarca'}" 
+                            :excluir="{visivel: true, dataToggle: 'modal', dataTarget: '#modalRemoverMarca'}"
+                            :titulos="titulosTabela" 
+                            :carregando="carregando">
                         </table-component>
                     </template>
                     <template v-slot:footer>
@@ -83,7 +86,6 @@
                         texto-ajuda="Opcional. Informe o Nome da marca">
                         <input type="text" class="form-control" id="novoNome" aria-describedby="novoNomeHelp"
                             placeholder="Nome da Marca" v-model="nomeMarca">
-
                     </input-container-component>
                 </div>
 
@@ -137,6 +139,32 @@
             </template>
         </modal-component>
         <!-- Fim modal de visualização da marca -->
+
+
+        <!-- Inicio modal de Remoçao da marca -->
+        <modal-component id="modalRemoverMarca" titulo="Remover Marca">
+            <template v-slot:alertas>
+                <alert-component tipo="success" :detalhes="$store.state.transacao" titulo="Cadastro removido com sucesso"
+                    v-if="$store.state.transacao.status == 'sucesso'">
+                </alert-component>
+                <alert-component tipo="danger" :detalhes="$store.state.transacao" titulo="Erro ao tentar remover o cadastro da marca"
+                    v-if="$store.state.transacao.status == 'erro'"></alert-component>
+            </template>
+            <template v-slot:conteudo v-if="$store.state.transacao.status != 'sucesso'">
+                <input-container-component titulo="ID">
+                    <input type="text" class="form-control" :value="$store.state.item.id">
+                </input-container-component>
+                <input-container-component titulo="Nome da Marca">
+                    <input type="text" class="form-control" :value="$store.state.item.nome">
+                </input-container-component>
+            </template>
+
+            <template v-slot:rodape>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-danger" v-if="$store.state.transacao.status != 'sucesso'" @click="remover()">Excluir</button>
+            </template>
+        </modal-component>
+        <!-- Fim modal de Remoção da marca -->
     </div>
 </template>
 
@@ -152,7 +180,7 @@ export default {
             token = token.split('=')[1]
             token = 'Bearer ' + token
 
-            // console.log(token)
+            
             return token
         }
     },
@@ -182,6 +210,48 @@ export default {
         }
     },
     methods: {
+        remover() {
+            let confirmação = confirm('Ação irreversível, você tem certeza que deseja realizar está ação?');
+            if(!confirmação) {
+                return false;
+            }
+            let formData = new FormData();
+            formData.append('_method', 'delete');
+
+            let config = {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': this.token
+                }
+            }
+
+            let url = this.urlBase + '/' + this.$store.state.item.id;
+
+            axios.post(url, formData, config)
+                .then(response => {
+                    console.log('Registro removido com sucesso', response);
+
+                    this.$store.state.transacao.status = 'sucesso';
+
+                    this.$store.state.transacao.mensagem = response.data.msg;
+
+                    this.carregarLista();
+                })
+                .catch(errors => {
+
+                    this.$store.state.transacao.status = 'erro';
+                    
+                    let menssagemErro = errors.response.data.erro;
+
+                    this.$store.state.transacao.data = {
+                        message: menssagemErro
+                    };
+
+                    this.$store.state.transacao.mensagem = menssagemErro;
+
+                    console.log('Erro no Vuex:', this.$store.state.transacao);
+                });
+        },
         carregarImagem(e) {
             this.arquivoImagem = e.target.files
         },
@@ -192,7 +262,7 @@ export default {
             }
         },
         pesquisar() {
-            // console.log(this.busca)
+           
             let filtro = ''
 
             for (let chave in this.busca) {
@@ -214,10 +284,9 @@ export default {
 
 
             this.carregarLista()
-            console.log('urlFiltro: ', this.urlFiltro)
         },
         salvar() {
-            // console.log(this.nomeMarca, this.arquivoImagem)
+            
 
             let formData = new FormData();
             formData.append('nome', this.nomeMarca)
@@ -283,14 +352,11 @@ export default {
                 url = url.slice(0, -1)
             }
 
-            console.log('URL Final: ', url)
-
             this.marcas = { data: [] };
 
             axios.get(url, config)
                 .then(response => {
                     this.marcas = response.data;
-                    // console.log(this.marcas)
                 })
                 .catch(errors => {
                     console.log(errors)
