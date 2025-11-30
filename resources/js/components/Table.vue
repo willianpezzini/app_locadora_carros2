@@ -13,7 +13,7 @@
                         {{ titulo.titulo}}
                     </th>
                     <th v-if="$slots.acoes">Ações</th>
-                    <th v-if="visualizar.visivel || editar || excluir"></th>
+                    <th v-if="visualizar.visivel || editar || excluir.visivel"></th>
                 </tr>
             </thead>
             <tbody>
@@ -33,10 +33,10 @@
                     <td v-if="$slots.acoes">
                         <slot name="acoes" :item="obj"></slot>
                     </td>
-                    <td v-if="visualizar.visivel || editar || excluir">
+                    <td v-if="visualizar.visivel || editar || excluir.visivel">
                         <button v-if="visualizar.visivel" class="btn btn-outline-success btn-sm" :data-toggle="visualizar.dataToggle" :data-target="visualizar.dataTarget" @click="setStore(obj)">Visualizar</button>
-                        <button v-if="editar" class="btn btn-outline-primary btn-sm">Editar</button>
-                        <button v-if="excluir" class="btn btn-outline-danger btn-sm">Excluir</button>
+                        <button v-if="editar" class="btn btn-outline-primary btn-sm"  >Editar</button>
+                        <button v-if="excluir" class="btn btn-outline-danger btn-sm" :data-toggle="excluir.dataToggle" :data-target="excluir.dataTarget" @click="setStore(obj)">Excluir</button>
                     </td>
                 </tr>
             </tbody>
@@ -89,8 +89,10 @@ export default {
             return data.toLocaleDateString('pt-BR', { timeZone: 'UTC'});
         },
         setStore(obj) {
-            this.$store.state.item = obj
-            console.log(obj)
+            this.$store.state.transacao.status = '';
+            this.$store.state.transacao.mensagem = '';
+            this.$store.state.item = obj;
+            console.log(obj);
         }
     }
 }
