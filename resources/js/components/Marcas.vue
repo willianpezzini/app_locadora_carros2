@@ -38,10 +38,9 @@
                     <template v-slot:body>
                         <table-component :dados="marcas.data"
                             :visualizar="{ visivel: true, dataToggle: 'modal', dataTarget: '#modalVisualizarMarca' }"
-                            :editar="{visivel: true, dataToggle: 'modal', dataTarget: '#modalEditarMarca'}" 
-                            :excluir="{visivel: true, dataToggle: 'modal', dataTarget: '#modalRemoverMarca'}"
-                            :titulos="titulosTabela" 
-                            :carregando="carregando">
+                            :editar="{ visivel: true, dataToggle: 'modal', dataTarget: '#modalAtualizarMarca' }"
+                            :excluir="{ visivel: true, dataToggle: 'modal', dataTarget: '#modalRemoverMarca' }"
+                            :titulos="titulosTabela" :carregando="carregando">
                         </table-component>
                     </template>
                     <template v-slot:footer>
@@ -123,8 +122,8 @@
                     <input type="text" class="form-control" :value="$store.state.item.nome">
                 </input-container-component>
                 <input-container-component titulo="Imagem">
-                    <img :src="'storage/' + $store.state.item.imagem" v-if="$store.state.item.imagem" alt="" width="100px" height="100px"
-                        style="padding: 10px">
+                    <img :src="'storage/' + $store.state.item.imagem" v-if="$store.state.item.imagem" alt=""
+                        width="100px" height="100px" style="padding: 10px">
                 </input-container-component>
                 <input-container-component titulo="Data de Criação">
                     <input type="text" class="form-control" :value="$store.state.item.created_at">
@@ -140,14 +139,51 @@
         </modal-component>
         <!-- Fim modal de visualização da marca -->
 
+        <!-- Inicio modal de Edição da marca -->
+        <modal-component id="modalAtualizarMarca" titulo="Atualizar Marca">
+            <template v-slot:alertas>
+                <alert-component tipo="success" :detalhes="$store.state.transacao"
+                    titulo="Cadastro atualizado com sucesso" v-if="$store.state.transacao.status == 'sucesso'">
+                </alert-component>
+                <alert-component tipo="danger" :detalhes="$store.state.transacao"
+                    titulo="Erro ao tentar atualizar o cadastro da marca"
+                    v-if="$store.state.transacao.status == 'erro'"></alert-component>
+            </template>
+            <template v-slot:conteudo>
+                <div class="form-group">
+                    <input-container-component titulo="Nome da Marca" id="atualizarNome" id-help="atualizarNomeHelp"
+                        texto-ajuda="Opcional. Informe o Nome da marca">
+                        <input type="text" class="form-control" id="atualizarNome" aria-describedby="atualizarNomeHelp"
+                            placeholder="Nome da Marca" v-model="$store.state.item.nome">
+                    </input-container-component>
+                </div>
+
+                <div class="form-group">
+                    <input-container-component titulo="Imagem" id="atualizarImagem" id-help="atualizarImagemHelp"
+                        texto-ajuda="Selecione uma imagem no formato PNG.">
+                        <input type="file" class="form-control-file" id="atualizarImagem"
+                            aria-describedby="atualizarImagemHelp" placeholder="Selecione uma imagem"
+                            @change="carregarImagem($event)">
+
+                    </input-container-component>
+                </div>
+            </template>
+
+            <template v-slot:rodape>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" @click="atualizar()">Atualizar</button>
+            </template>
+        </modal-component>
+        <!-- Fim modal de Edição da marca -->
 
         <!-- Inicio modal de Remoçao da marca -->
         <modal-component id="modalRemoverMarca" titulo="Remover Marca">
             <template v-slot:alertas>
-                <alert-component tipo="success" :detalhes="$store.state.transacao" titulo="Cadastro removido com sucesso"
-                    v-if="$store.state.transacao.status == 'sucesso'">
+                <alert-component tipo="success" :detalhes="$store.state.transacao"
+                    titulo="Cadastro removido com sucesso" v-if="$store.state.transacao.status == 'sucesso'">
                 </alert-component>
-                <alert-component tipo="danger" :detalhes="$store.state.transacao" titulo="Erro ao tentar remover o cadastro da marca"
+                <alert-component tipo="danger" :detalhes="$store.state.transacao"
+                    titulo="Erro ao tentar remover o cadastro da marca"
                     v-if="$store.state.transacao.status == 'erro'"></alert-component>
             </template>
             <template v-slot:conteudo v-if="$store.state.transacao.status != 'sucesso'">
@@ -161,7 +197,8 @@
 
             <template v-slot:rodape>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-                <button type="button" class="btn btn-danger" v-if="$store.state.transacao.status != 'sucesso'" @click="remover()">Excluir</button>
+                <button type="button" class="btn btn-danger" v-if="$store.state.transacao.status != 'sucesso'"
+                    @click="remover()">Excluir</button>
             </template>
         </modal-component>
         <!-- Fim modal de Remoção da marca -->
@@ -169,6 +206,8 @@
 </template>
 
 <script>
+
+
 
 export default {
     computed: {
@@ -180,7 +219,7 @@ export default {
             token = token.split('=')[1]
             token = 'Bearer ' + token
 
-            
+
             return token
         }
     },
@@ -210,9 +249,60 @@ export default {
         }
     },
     methods: {
+        atualizar() {
+            let formData = new FormData();
+
+            formData.append('_method', 'patch');
+            formData.append('nome', this.$store.state.item.nome);
+
+            if (this.arquivoImagem && this.arquivoImagem[0]) {
+                formData.append('imagem', this.arquivoImagem[0]);
+            }
+            let url = this.urlBase + '/' + this.$store.state.item.id;
+
+            let config = {
+                headers: {
+                    'Content-Type': 'multpart/form-data',
+                    'Accept': 'application/json',
+                    'Authorization': this.token
+                }
+            }
+
+            axios.post(url, formData, config)
+                .then(response => {
+                    console.log('Cadastro Atualizado', response);
+
+                    this.$store.state.transacao.status = 'sucesso';
+                    this.$store.state.transacao.mensagem = 'Registro atualizado com sucesso!';
+
+                    this.$store.state.transacao.data = {
+                        message: 'Registro atualizado com sucesso!'
+                    };
+
+
+                    let inputArquivo = document.getElementById('atualizarImagem');
+                    if (inputArquivo) inputArquivo.value = '';
+
+                    this.carregarLista();
+                })
+                .catch(errors => {
+                    console.log('Erro ao atualizar', errors.response);
+
+                    this.$store.state.transacao.status = 'erro';
+
+                    this.$store.state.transacao.mensagem = errors.response.data.message;
+
+                    this.$store.state.transacao.data = {
+                        message: errors.response.data.message,
+                        errors: errors.response.data.errors
+                    };
+
+
+                })
+        },
         remover() {
             let confirmação = confirm('Ação irreversível, você tem certeza que deseja realizar está ação?');
-            if(!confirmação) {
+            if (!confirmação) {
                 return false;
             }
             let formData = new FormData();
@@ -229,28 +319,31 @@ export default {
 
             axios.post(url, formData, config)
                 .then(response => {
-                    console.log('Registro removido com sucesso', response);
+                    console.log('Sucesso:', response);
 
+                    // 1. Define o status para aparecer o alerta verde
                     this.$store.state.transacao.status = 'sucesso';
 
-                    this.$store.state.transacao.mensagem = response.data.msg;
+                    // 2. Define a mensagem exatamente onde o Alert procura
+                    this.$store.state.transacao.data = {
+                        message: response.data.msg
+                    };
 
+                    // Atualiza a lista
                     this.carregarLista();
                 })
                 .catch(errors => {
+                    console.log('Erro:', errors.response);
 
+                    // 1. Define o status para aparecer o alerta vermelho
                     this.$store.state.transacao.status = 'erro';
-                    
-                    let menssagemErro = errors.response.data.erro;
 
+                    // 2. Define a mensagem onde o Alert procura
+                    // (Pegamos 'erro' do Laravel e colocamos em 'message' do Vue)
                     this.$store.state.transacao.data = {
-                        message: menssagemErro
+                        message: errors.response.data.erro
                     };
-
-                    this.$store.state.transacao.mensagem = menssagemErro;
-
-                    console.log('Erro no Vuex:', this.$store.state.transacao);
-                });
+                })
         },
         carregarImagem(e) {
             this.arquivoImagem = e.target.files
@@ -262,7 +355,7 @@ export default {
             }
         },
         pesquisar() {
-           
+
             let filtro = ''
 
             for (let chave in this.busca) {
@@ -286,7 +379,7 @@ export default {
             this.carregarLista()
         },
         salvar() {
-            
+
 
             let formData = new FormData();
             formData.append('nome', this.nomeMarca)
