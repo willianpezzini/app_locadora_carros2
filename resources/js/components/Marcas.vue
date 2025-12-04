@@ -100,7 +100,7 @@
 
             <template v-slot:rodape>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-                <button type="button" class="btn btn-primary" @click="salvar">Salvar</button>
+                <button type="button" class="btn btn-primary" @click="salvar()">Salvar</button>
             </template>
         </modal-component>
         <!-- Fim modal de inclusão da marca -->
@@ -126,10 +126,10 @@
                         width="100px" height="100px" style="padding: 10px">
                 </input-container-component>
                 <input-container-component titulo="Data de Criação">
-                    <input type="text" class="form-control" :value="$store.state.item.created_at">
+                    <input type="text" class="form-control" :value="formatarDataHora($store.state.item.created_at)">
                 </input-container-component>
                 <input-container-component titulo="Última Atualização">
-                    <input type="text" class="form-control" :value="$store.state.item.updated_at">
+                    <input type="text" class="form-control" :value="formatarDataHora($store.state.item.updated_at)">
                 </input-container-component>
             </template>
 
@@ -379,8 +379,6 @@ export default {
             this.carregarLista()
         },
         salvar() {
-
-
             let formData = new FormData();
             formData.append('nome', this.nomeMarca)
             formData.append('imagem', this.arquivoImagem[0])
@@ -417,6 +415,8 @@ export default {
                     };
                     console.log('Erros capturados', this.transacaoDetalhes);
                 });
+
+                this.carregarLista();
         },
         carregarLista() {
             let config = {
