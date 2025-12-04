@@ -57,14 +57,8 @@ export default {
         editar: { type: Object, default: () => ({ visivel: false }) },
         excluir: { type: Object, default: () => ({ visivel: false }) }
     },
+   
     methods: {
-        formatarData(dataString) {
-            if (!dataString) return '';
-
-            const data = new Date(dataString);
-
-            return data.toLocaleDateString('pt-BR', { timeZone: 'UTC'});
-        },
         setStore(obj) {
             this.$store.state.transacao.status = '';
             this.$store.state.transacao.mensagem = '';

@@ -8,6 +8,9 @@ require('./bootstrap');
 
 window.Vue = require('vue').default;
 
+import { Formatter } from './mixins/Formatter';
+Vue.mixin(Formatter);
+
 /* Importação e configuração do vuex */
 import Vuex from 'Vuex'
 Vue.use(Vuex);
@@ -44,6 +47,7 @@ Vue.component('card-component', require('./components/Card.vue').default);
 Vue.component('modal-component', require('./components/Modal.vue').default);
 Vue.component('alert-component', require('./components/Alert.vue').default);
 Vue.component('paginate-component', require('./components/Paginate.vue').default);
+
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
