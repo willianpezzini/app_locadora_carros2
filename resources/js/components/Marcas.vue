@@ -210,20 +210,7 @@
 
 
 export default {
-    computed: {
-        token() {
-            let token = document.cookie.split(';').find(indice => {
-                return indice.startsWith('token=')
-            })
-
-            token = token.split('=')[1]
-            token = 'Bearer ' + token
-
-
-            return token
-        }
-    },
-
+    
     data() {
         return {
             urlBase: 'http://localhost:8000/api/v1/marca',
@@ -262,9 +249,7 @@ export default {
 
             let config = {
                 headers: {
-                    'Content-Type': 'multpart/form-data',
-                    'Accept': 'application/json',
-                    'Authorization': this.token
+                    'Content-Type': 'multpart/form-data'                   
                 }
             }
 
@@ -308,16 +293,9 @@ export default {
             let formData = new FormData();
             formData.append('_method', 'delete');
 
-            let config = {
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': this.token
-                }
-            }
-
             let url = this.urlBase + '/' + this.$store.state.item.id;
 
-            axios.post(url, formData, config)
+            axios.post(url, formData)
                 .then(response => {
                     console.log('Sucesso:', response);
 
@@ -385,13 +363,11 @@ export default {
 
             let config = {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Accept': 'application/json',
-                    'Authorization': this.token
+                    'Content-Type': 'multipart/form-data'
                 }
             }
 
-            axios.post(this.urlBase, formData, config)
+            axios.post(this.urlBase, formData)
                 .then(response => {
                     this.transacaoStatus = 'add'
                     this.transacaoDetalhes = {
@@ -419,12 +395,7 @@ export default {
                 this.carregarLista();
         },
         carregarLista() {
-            let config = {
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': this.token
-                }
-            }
+            
             this.carregando = true
 
             let url = this.urlBase + '?';
@@ -447,7 +418,7 @@ export default {
 
             this.marcas = { data: [] };
 
-            axios.get(url, config)
+            axios.get(url)
                 .then(response => {
                     this.marcas = response.data;
                 })
