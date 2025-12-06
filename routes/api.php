@@ -20,13 +20,9 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 // Utilizando o apiResource para criar o mapeamento automático de rotas, ele não cria a rota creted e nem a edit, que serão tratadas através de formulários.
 
-Route::post('login', 'App\Http\Controllers\AuthController@login');
-
 Route::prefix('v1')->middleware('jwt.auth')->group(function () {
     Route::post('logout', 'App\Http\Controllers\AuthController@logout');
-    Route::post('refresh', 'App\Http\Controllers\AuthController@refresh');
     Route::post('me', 'App\Http\Controllers\AuthController@me');
-    
     Route::apiResource('cliente', 'App\Http\Controllers\ClienteController');
     Route::apiResource('carro', 'App\Http\Controllers\CarroController');
     Route::apiResource('locacao', 'App\Http\Controllers\LocacaoController');
@@ -34,5 +30,8 @@ Route::prefix('v1')->middleware('jwt.auth')->group(function () {
     Route::apiResource('modelo', 'App\Http\Controllers\ModeloController');
 
 });
+
+Route::post('login', 'App\Http\Controllers\AuthController@login');
+Route::post('refresh', 'App\Http\Controllers\AuthController@refresh');
 
 

@@ -11,7 +11,7 @@ try {
     window.$ = window.jQuery = require('jquery');
 
     require('bootstrap');
-} catch (e) {}
+} catch (e) { }
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
@@ -39,3 +39,54 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     cluster: process.env.MIX_PUSHER_APP_CLUSTER,
 //     forceTLS: true
 // });
+
+// Interceptar os requests da aplicação
+axios.interceptors.request.use(
+    config => {
+        //Defini para todas as requisições o Accept e o Authorization
+        config.headers.Accept = 'application/json';
+
+        //Recupera o token de autorização dos coockies
+        let token = document.cookie.split(';').find(indice => {
+            return indice.startsWith('token=')
+        })
+
+        token = token.split('=')[1]
+        token = 'Bearer ' + token
+
+        config.headers.Authorization = token;
+
+        console.log('Interceptando o request antes do envio', config)
+        return config;
+    },
+    error => {
+        console.log('Erro na requisição: ', error)
+        return Promise.reject(error);
+    }
+);
+
+// Interceptar os responses da aplicação
+axios.interceptors.response.use(
+    response => {
+        console.log('Interceptando a resposta antes da chegada até a aplicação', response)
+        return response;
+    },
+    error => {
+        console.log('Erro na resposta: ', error.response);
+
+        //Fazendo a solicitação de um novo Token atravez da rota refresh
+        if (error.response.status == 401 && error.response.data.message == 'Token has expired') {
+            axios.post('http://localhost:8000/api/refresh')
+                .then(response => {
+                    console.log('Refresh realizado com sucesso', response);
+                    //add o novo token nos Coockies
+                    document.cookie = 'token='+response.data.token;
+
+                    //Forçando uma nova requisição a rota anterior
+                    window.location.reload();
+                })
+        }
+
+        return Promise.reject(error);
+    }
+)
